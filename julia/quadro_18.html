@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Quadro 18</title>
+    <style>
+      :root {
+        --fade-color: rgba(0, 0, 0, 0.55);
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        overflow: hidden;
+        background: #f6e4de;
+      }
+
+      .scene {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("images/quadro_18.png");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+
+      .photo-slot {
+        position: absolute;
+        overflow: hidden;
+        border-radius: 6px;
+        background: transparent;
+        transform: scale(1.29);
+        transform-origin: center;
+      }
+
+      .photo-slot img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+
+      .photo-1 {
+        left: 18.3%;
+        top: 17.7%;
+        width: 11.7%;
+        height: 16%;
+      }
+
+      .photo-2 {
+        left: 32.8%;
+        top: 17.7%;
+        width: 10.8%;
+        height: 16%;
+      }
+
+      .photo-3 {
+        left: 46.4%;
+        top: 17.7%;
+        width: 10.4%;
+        height: 16%;
+      }
+
+      .photo-4 {
+        left: 59.5%;
+        top: 17.7%;
+        width: 11%;
+        height: 16%;
+      }
+
+      .photo-5 {
+        left: 73.4%;
+        top: 17.7%;
+        width: 10.8%;
+        height: 16%;
+      }
+
+      .photo-6 {
+        left: 18.3%;
+        top: 50.8%;
+        width: 11.7%;
+        height: 16.3%;
+      }
+
+      .photo-7 {
+        left: 32.8%;
+        top: 50.8%;
+        width: 10.8%;
+        height: 16.3%;
+      }
+
+      .photo-8 {
+        left: 46.4%;
+        top: 50.8%;
+        width: 10.4%;
+        height: 16.3%;
+      }
+
+      .photo-9 {
+        left: 59.5%;
+        top: 50.8%;
+        width: 11%;
+        height: 16.3%;
+      }
+
+      .photo-10 {
+        left: 73.4%;
+        top: 50.8%;
+        width: 10.8%;
+        height: 16.3%;
+      }
+
+      .fade-layer {
+        position: fixed;
+        inset: 0;
+        background: var(--fade-color);
+        opacity: 0;
+        transition: opacity 0.35s ease;
+        pointer-events: none;
+        z-index: 2;
+      }
+
+      body.fade-in .fade-layer {
+        opacity: 1;
+      }
+
+      .back-button {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        width: 36px;
+        height: 36px;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        cursor: pointer;
+        z-index: 5;
+        transition: transform 0.15s ease;
+      }
+
+      .back-button img {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .back-button:hover {
+        transform: scale(1.05);
+      }
+    </style>
+  </head>
+  <body class="fade-in">
+    <button
+      class="back-button"
+      type="button"
+      aria-label="Voltar"
+      onclick="history.back()"
+    >
+      <img src="images/volta.png" alt="" />
+    </button>
+
+    <section class="scene" aria-label="Quadro 18">
+      <div class="photo-slot photo-1">
+        <img src="quadro_niver/1.jpg" alt="Foto 1" />
+      </div>
+      <div class="photo-slot photo-2">
+        <img src="quadro_niver/2.jpg" alt="Foto 2" />
+      </div>
+      <div class="photo-slot photo-3">
+        <img src="quadro_niver/3.jpg" alt="Foto 3" />
+      </div>
+      <div class="photo-slot photo-4">
+        <img src="quadro_niver/4.jpg" alt="Foto 4" />
+      </div>
+      <div class="photo-slot photo-5">
+        <img src="quadro_niver/5.jpg" alt="Foto 5" />
+      </div>
+      <div class="photo-slot photo-6">
+        <img src="quadro_niver/6.png" alt="Foto 6" />
+      </div>
+      <div class="photo-slot photo-7">
+        <img src="quadro_niver/7.png" alt="Foto 7" />
+      </div>
+      <div class="photo-slot photo-8">
+        <img src="quadro_niver/8.jpg" alt="Foto 8" />
+      </div>
+      <div class="photo-slot photo-9">
+        <img src="quadro_niver/9.jpg" alt="Foto 9" />
+      </div>
+      <div class="photo-slot photo-10">
+        <img src="quadro_niver/10.png" alt="Foto 10" />
+      </div>
+    </section>
+    <div class="fade-layer" aria-hidden="true"></div>
+
+    <script>
+      const body = document.body;
+
+      window.addEventListener("load", () => {
+        if (!body.classList.contains("fade-in")) {
+          return;
+        }
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            body.classList.remove("fade-in");
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

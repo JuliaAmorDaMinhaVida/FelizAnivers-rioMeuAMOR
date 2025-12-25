@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Praia</title>
+    <style>
+      :root {
+        --accent: #d8838d;
+        --glow: rgba(216, 131, 141, 0.7);
+        --debug-border: rgba(255, 0, 0, 0.85);
+        --debug-fill: rgba(255, 0, 0, 0.2);
+        --fade-color: rgba(0, 0, 0, 0.55);
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        overflow: hidden;
+        background: #f6e4de;
+      }
+
+      .scene {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("images/praia.png");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        transform: scale(1);
+        transform-origin: center;
+        transition: transform 0.25s ease;
+        will-change: transform;
+        z-index: 1;
+      }
+
+      .hotspot {
+        position: absolute;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      }
+
+      .hotspot.debug-mode {
+        border: 0;
+        background: transparent;
+      }
+
+      .hotspot:hover {
+        transform: none;
+        box-shadow: none;
+        filter: none;
+      }
+
+      .hotspot.is-zoomed {
+        transform: scale(1.32);
+        box-shadow: none;
+        filter: none;
+      }
+
+      .hotspot:hover::after {
+        opacity: 0;
+      }
+
+      .hotspot:focus-visible {
+        outline: 2px dashed var(--accent);
+        outline-offset: 3px;
+      }
+
+      .hotspot::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 12px;
+        display: none;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(0.98);
+          opacity: 0.4;
+        }
+        50% {
+          transform: scale(1.04);
+          opacity: 0.7;
+        }
+        100% {
+          transform: scale(0.98);
+          opacity: 0.4;
+        }
+      }
+
+      .hotspot--personagens {
+        left: 43%;
+        top: 36%;
+        width: 20%;
+        height: 40%;
+      }
+
+      .fade-layer {
+        position: fixed;
+        inset: 0;
+        background: var(--fade-color);
+        opacity: 0;
+        transition: opacity 0.35s ease;
+        pointer-events: none;
+        z-index: 2;
+      }
+
+      body.is-transitioning .scene {
+        transform: scale(1.2);
+      }
+
+      body.is-transitioning .fade-layer {
+        opacity: 1;
+      }
+
+      body.fade-in .fade-layer {
+        opacity: 1;
+      }
+
+      .back-button {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        width: 36px;
+        height: 36px;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        cursor: pointer;
+        z-index: 5;
+        transition: transform 0.15s ease;
+      }
+
+      .back-button img {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .back-button:hover {
+        transform: scale(1.05);
+      }
+    </style>
+  </head>
+  <body class="fade-in">
+    <button
+      class="back-button"
+      type="button"
+      aria-label="Voltar"
+      onclick="history.back()"
+    >
+      <img src="images/volta.png" alt="" />
+    </button>
+
+    <section class="scene" aria-label="Quadro da praia">
+      <button
+        class="hotspot debug-mode hotspot--personagens"
+        type="button"
+        data-label="Personagens"
+        data-target="quadro_praia.html"
+        aria-label="Personagens na praia"
+      ></button>
+    </section>
+    <div class="fade-layer" aria-hidden="true"></div>
+
+    <script>
+      const body = document.body;
+      const scene = document.querySelector(".scene");
+
+      const triggerTransition = (hotspot) => {
+        const rect = hotspot.getBoundingClientRect();
+        const originX = rect.left + rect.width / 2;
+        const originY = rect.top + rect.height / 2;
+        scene.style.transformOrigin = `${originX}px ${originY}px`;
+        hotspot.classList.add("is-zoomed");
+        body.classList.add("is-transitioning");
+      };
+
+      document.querySelectorAll(".hotspot").forEach((hotspot) => {
+        hotspot.addEventListener("click", () => {
+          const target = hotspot.dataset.target || hotspot.getAttribute("href");
+          triggerTransition(hotspot);
+
+          if (target) {
+            setTimeout(() => {
+              window.location.href = target;
+            }, 240);
+            return;
+          }
+
+          const label = hotspot.dataset.label || "Objeto";
+          setTimeout(() => {
+            alert(`Voce clicou em ${label}!`);
+            body.classList.remove("is-transitioning");
+            hotspot.classList.remove("is-zoomed");
+          }, 240);
+        });
+      });
+
+      window.addEventListener("load", () => {
+        if (!body.classList.contains("fade-in")) {
+          return;
+        }
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            body.classList.remove("fade-in");
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

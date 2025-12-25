@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Caderno da Gaveta</title>
+    <style>
+      :root {
+        --fade-color: rgba(0, 0, 0, 0.55);
+        --book-left: 15%;
+        --book-top: 8%;
+        --book-width: 70%;
+        --book-height: 70%;
+        --page-gap: 2.2%;
+        --page-bg: rgba(255, 255, 255, 0.97);
+        --page-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        overflow: hidden;
+        background: #f6e4de;
+      }
+
+      .scene {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("images/carderno.png");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+
+      .book {
+        position: absolute;
+        left: var(--book-left);
+        top: var(--book-top);
+        width: var(--book-width);
+        height: var(--book-height);
+        perspective: 1400px;
+        z-index: 1;
+        pointer-events: none;
+      }
+
+      .page {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: calc(50% - var(--page-gap));
+        background: var(--page-bg);
+        border-radius: 6px;
+        box-shadow: var(--page-shadow);
+        overflow: hidden;
+        transition: opacity 0.15s ease;
+        pointer-events: none;
+      }
+
+      .page--left {
+        left: 0;
+      }
+
+      .page--right {
+        right: 0;
+      }
+
+      .page--long {
+        bottom: -15%;
+      }
+
+      .page--long .page__content {
+        padding: 4% 7% 5%;
+      }
+
+      .page__content {
+        height: 100%;
+        padding: 5% 8% 7%;
+        color: rgba(56, 46, 52, 0.75);
+        font-size: 0.95rem;
+        line-height: 1.5;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .page__text {
+        font-size: 0.9rem;
+        color: rgba(56, 46, 52, 0.75);
+      }
+
+      .page__gallery {
+        flex: 0 0 50%;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-rows: repeat(2, auto);
+        column-gap: 8px;
+        row-gap: 2px;
+        align-content: start;
+      }
+
+      .page__thumb {
+        width: 100%;
+        height: 100%;
+        background: transparent;
+        display: grid;
+        place-items: center;
+      }
+
+      .page__thumb img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        object-position: top center;
+        display: block;
+      }
+
+      .page__thumb--empty {
+        visibility: hidden;
+      }
+
+      .page__title {
+        font-size: 1.05rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        color: rgba(56, 46, 52, 0.6);
+      }
+
+      .page--flip-right,
+      .page--flip-left {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: calc(50% - var(--page-gap));
+        transform-style: preserve-3d;
+        transition: transform 0.7s ease;
+        pointer-events: none;
+        opacity: 0;
+      }
+
+      .page--flip-right {
+        right: 0;
+        transform-origin: left center;
+      }
+
+      .page--flip-left {
+        left: 0;
+        transform-origin: right center;
+      }
+
+      .page__face {
+        position: absolute;
+        inset: 0;
+        backface-visibility: hidden;
+        background: var(--page-bg);
+        border-radius: 6px;
+        box-shadow: var(--page-shadow);
+      }
+
+      .page__face--back {
+        transform: rotateY(180deg);
+      }
+
+      .book.is-flipping-next .page--flip-right {
+        opacity: 1;
+        transform: rotateY(-180deg);
+      }
+
+      .book.is-flipping-prev .page--flip-left {
+        opacity: 1;
+        transform: rotateY(180deg);
+      }
+
+      .book.is-flipping-next .page--right,
+      .book.is-flipping-prev .page--left {
+        opacity: 0;
+      }
+
+      .page-hit {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 50%;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        cursor: pointer;
+        pointer-events: auto;
+      }
+
+      .page-hit--prev {
+        left: 0;
+      }
+
+      .page-hit--next {
+        right: 0;
+      }
+
+      .page-hit:disabled {
+        cursor: default;
+      }
+
+      .fade-layer {
+        position: fixed;
+        inset: 0;
+        background: var(--fade-color);
+        opacity: 0;
+        transition: opacity 0.35s ease;
+        pointer-events: none;
+        z-index: 2;
+      }
+
+      body.fade-in .fade-layer {
+        opacity: 1;
+      }
+
+      .back-button {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        width: 36px;
+        height: 36px;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        cursor: pointer;
+        z-index: 5;
+        transition: transform 0.15s ease;
+      }
+
+      .back-button img {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .back-button:hover {
+        transform: scale(1.05);
+      }
+    </style>
+  </head>
+  <body class="fade-in">
+    <button
+      class="back-button"
+      type="button"
+      aria-label="Voltar"
+      onclick="history.back()"
+    >
+      <img src="images/volta.png" alt="" />
+    </button>
+
+    <section class="scene" aria-label="Caderno dentro da gaveta">
+      <div class="book" id="book">
+        <div class="page page--left">
+          <div class="page__content" id="pageLeft"></div>
+        </div>
+        <div class="page page--right">
+          <div class="page__content" id="pageRight"></div>
+        </div>
+
+        <div class="page--flip-right" id="flipRight">
+          <div class="page__face page__face--front">
+            <div class="page__content" id="flipRightFront"></div>
+          </div>
+          <div class="page__face page__face--back">
+            <div class="page__content" id="flipRightBack"></div>
+          </div>
+        </div>
+
+        <div class="page--flip-left" id="flipLeft">
+          <div class="page__face page__face--front">
+            <div class="page__content" id="flipLeftFront"></div>
+          </div>
+          <div class="page__face page__face--back">
+            <div class="page__content" id="flipLeftBack"></div>
+          </div>
+        </div>
+
+        <button class="page-hit page-hit--prev" id="prevPage" type="button"></button>
+        <button class="page-hit page-hit--next" id="nextPage" type="button"></button>
+      </div>
+    </section>
+    <div class="fade-layer" aria-hidden="true"></div>
+
+    <script>
+      const body = document.body;
+      const book = document.getElementById("book");
+      const leftEl = document.getElementById("pageLeft");
+      const rightEl = document.getElementById("pageRight");
+      const leftPage = leftEl.parentElement;
+      const rightPage = rightEl.parentElement;
+      const flipRightFront = document.getElementById("flipRightFront");
+      const flipRightBack = document.getElementById("flipRightBack");
+      const flipLeftFront = document.getElementById("flipLeftFront");
+      const flipLeftBack = document.getElementById("flipLeftBack");
+      const prevBtn = document.getElementById("prevPage");
+      const nextBtn = document.getElementById("nextPage");
+
+      const defaultImages = [
+        "E/1.jpeg",
+        "E/2.jpeg",
+        "E/3.jpeg",
+        "E/4.jpeg",
+        "E/5.jpeg",
+        "E/6.jpeg",
+      ];
+
+      const pages = [
+        { title: "E", text: "Esses momentos felizes me fazem lembrar." },
+        {
+          title: "U",
+          text: "De quem verdadeiramente me ensinou a amar",
+          images: [
+            "U/1.jpeg",
+            "U/2.jpeg",
+            "U/3.jpg",
+            "U/4.jpeg",
+            "U/5.jpeg",
+            "U/6.jpeg",
+          ],
+        },
+        {
+          title: "T",
+          text: "Em cada foto, um capítulo e um lugar.",
+          images: [
+            "T/1.jpeg",
+            "T/2.jpeg",
+            "T/3.jpeg",
+            "T/4.jpeg",
+            "T/5.jpeg",
+            "T/6.jpeg",
+          ],
+        },
+          {
+            title: "E",
+            text: "Onde meu maior presente foi te encontrar",
+            images: [
+              "E2/1.jpeg",
+              "E2/2.jpeg",
+              "E2/3.jpeg",
+              "E2/4.jpeg",
+              "E2/5.jpeg",
+              "E2/6.jpeg",
+            ],
+          },
+          {
+            title: "A",
+            text: "Cada momento, cada lugar...tudo está guardado no meu peito",
+            images: [
+              "A/1.jpeg",
+              "A/2.jpeg",
+              "A/3.jpeg",
+              "A/4.jpeg",
+              "A/5.jpeg",
+              "A/6.jpeg",
+            ],
+          },
+        {
+          title: "M",
+          text: "Te amar é meu plano perfeito",
+          images: [
+            "M/1.jpeg",
+            "M/2.jpeg",
+            "M/3.jpeg",
+            "M/4.jpeg",
+            "M/5.jpeg",
+            "M/6.jpeg",
+          ],
+        },
+        {
+          title: "O",
+          text: "O futuro nos aguarda!",
+          images: [
+            "JULIA/1.png",
+            "JULIA/2.png",
+            "JULIA/3.png",
+            "JULIA/4.png",
+            "JULIA/5.png",
+            "JULIA/6.png",
+          ],
+        },
+        {
+          title: "MEU AMOR, ",
+          text: "Hoje, comemoramos o seu dia, e eu me peguei pensando em como nossa vida mudou desde o nosso primeiro contato. É curioso parar para pensar que tudo começou com a gente jogando Fortnite, uma coisa que parecia ser apenas uma simples diversão, se tornou a coisa mais importante da minha vida. Lembro bem dos nossos sorvetes, de eu indo para aula só para te ver, e o mais impressionante... éramos somente amigos. Acredito muito muito muito que deus me colocou no seu caminho e te colocou no meu, desde o início, aquela vontade de se ver nunca foi normal, as coisas evoluiram até eu chegar em um momento onde me pegava pensando em você, me pegava sentindo falta do seu abraço, da sua companhia, dos nossos duos. Foi aí que eu percebi, nós não nos encontramos no fortnite por acaso, nós não tivemos vontade de nos ver mesmo se conhecendo muito pouco por acaso, há quem diga que amor a primeira vista não existe, mas eu não me incluo nisso. Mal sabíamos que 5 anos depois estaríamos aqui, eu na faculdade, trabalhando, você estudando para ser a futura médica da família, e aqui estamos nós, juntos e se amando incansavelmente. Ouvi dizer que depois de anos o relacionamento esfriava, ouvi dizer que a paixão acabava, e hoje ouço dizer que casamento é a pior decisão da vida. Depois de tudo que passamos, momentos ruins, bons, brigas, alegrias, choros, eu entendi que tudo isso era falado por Brunos que não encontraram sua Julia, e por Julias que não encontraram seu Bruno.As pessoas vivem a vida esperando o principe ou a princesa encantada, e eu sou abençoado, Deus já me deu a minha. Olhando para essas fotos de todos os nossos momentos, eu percebo quem realmente me ensinou a amar. E por causa desse amor, eu consigo olhar para um futuro e ter uma certeza: não importa onde a gente chegue, eu quero que seja ao seu lado. A vontade de viver do seu lado, a vontade de te levar alegria, a vontade de casar com você só cresce e me cativa. Hoje quando te vejo mergulhada nos livros, focada no sonho que te move, meu coração transborda de orgulho. Ver seu esforço, sua maturidade, sua disciplina, me amadureceu de uma forma que eu nem sabia que era possível. Você não é apenas o amor da minha vida, é a minha maior inspiração. Ver a mulher forte, determinada e dedicada que você se tornou, me faz querer ser, todos os dias, um homem melhor para te acompanhar e te orgulhar. Quero te agradecer infinitamente pela sua presença na minha vida, você me transformou, você é a mulher mais incrível que já pisou no planeta. Quero que nesse dia tão especial, você me abrace, abrace sua mãe e seu pai, e se lembre do quão especial você é pra cada uma das pessoas que estão aqui dentro dessa casa. Feliz aniversário, minha eterna duo. Que venha nosso futuro  brilhante pela frente, que venha faculdade, que venha casamento... que venha a vida. Com todo meu amor, Bruno",
+        },
+      ];
+
+      let leftIndex = 0;
+      let isFlipping = false;
+
+      const renderPage = (el, index) => {
+        if (index < 0 || index >= pages.length) {
+          el.innerHTML = "";
+          return;
+        }
+        const page = pages[index];
+        const images =
+          page.images && page.images.length ? page.images : defaultImages;
+        const thumbs = Array.from({ length: 6 }, (_, i) => {
+          const src = images[i];
+          if (!src) {
+            return `<div class="page__thumb page__thumb--empty"></div>`;
+          }
+          return `
+            <div class="page__thumb">
+              <img src="${src}" alt="Foto ${i + 1}" />
+            </div>
+          `;
+        }).join("");
+        const text = page.text ? `<div class="page__text">${page.text}</div>` : "";
+        el.innerHTML = `
+          <div class="page__title">${page.title}</div>
+          ${text}
+          <div class="page__gallery">${thumbs}</div>
+        `;
+      };
+
+      const renderSpread = () => {
+        renderPage(leftEl, leftIndex);
+        renderPage(rightEl, leftIndex + 1);
+        leftPage.classList.remove("page--long");
+        rightPage.classList.remove("page--long");
+        const lastIndex = pages.length - 1;
+        if (leftIndex === lastIndex) {
+          leftPage.classList.add("page--long");
+        }
+        if (leftIndex + 1 === lastIndex) {
+          rightPage.classList.add("page--long");
+        }
+        prevBtn.disabled = leftIndex <= 0;
+        nextBtn.disabled = leftIndex + 2 >= pages.length;
+      };
+
+      const flipNext = () => {
+        if (isFlipping || leftIndex + 2 >= pages.length) {
+          return;
+        }
+        isFlipping = true;
+        renderPage(flipRightFront, leftIndex + 1);
+        renderPage(flipRightBack, leftIndex + 2);
+        book.classList.add("is-flipping-next");
+        setTimeout(() => {
+          leftIndex += 2;
+          book.classList.remove("is-flipping-next");
+          renderSpread();
+          isFlipping = false;
+        }, 720);
+      };
+
+      const flipPrev = () => {
+        if (isFlipping || leftIndex <= 0) {
+          return;
+        }
+        isFlipping = true;
+        renderPage(flipLeftFront, leftIndex);
+        renderPage(flipLeftBack, leftIndex - 1);
+        book.classList.add("is-flipping-prev");
+        setTimeout(() => {
+          leftIndex -= 2;
+          book.classList.remove("is-flipping-prev");
+          renderSpread();
+          isFlipping = false;
+        }, 720);
+      };
+
+      prevBtn.addEventListener("click", flipPrev);
+      nextBtn.addEventListener("click", flipNext);
+
+      renderSpread();
+
+      window.addEventListener("load", () => {
+        if (!body.classList.contains("fade-in")) {
+          return;
+        }
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            body.classList.remove("fade-in");
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

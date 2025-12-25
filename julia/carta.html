@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Carta</title>
+    <style>
+      :root {
+        --fade-color: rgba(0, 0, 0, 0.55);
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        overflow: hidden;
+        background: #f6e4de;
+      }
+
+      .scene {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("images/carta.png");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        transform: scale(1);
+        transform-origin: center;
+        transition: transform 0.25s ease;
+        will-change: transform;
+        z-index: 1;
+      }
+
+      .fade-layer {
+        position: fixed;
+        inset: 0;
+        background: var(--fade-color);
+        opacity: 0;
+        transition: opacity 0.35s ease;
+        pointer-events: none;
+        z-index: 2;
+      }
+
+      body.is-transitioning .scene {
+        transform: scale(1.2);
+      }
+
+      body.is-transitioning .fade-layer {
+        opacity: 1;
+      }
+
+      body.fade-in .fade-layer {
+        opacity: 1;
+      }
+
+      .back-button {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        width: 36px;
+        height: 36px;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        cursor: pointer;
+        z-index: 5;
+        transition: transform 0.15s ease;
+      }
+
+      .back-button img {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .back-button:hover {
+        transform: scale(1.05);
+      }
+
+      .hotspot {
+        position: absolute;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        cursor: pointer;
+      }
+
+      .hotspot--tinta {
+        left: 71%;
+        top: 74%;
+        width: 9%;
+        height: 12%;
+      }
+    </style>
+  </head>
+  <body class="fade-in">
+    <button
+      class="back-button"
+      type="button"
+      aria-label="Voltar"
+      onclick="history.back()"
+    >
+      <img src="images/volta.png" alt="" />
+    </button>
+
+    <section class="scene" aria-label="Carta">
+      <button
+        class="hotspot hotspot--tinta"
+        type="button"
+        data-label="Tinta"
+        data-target="carta_bruno.html"
+        aria-label="Potinho de tinta da pena"
+      ></button>
+    </section>
+    <div class="fade-layer" aria-hidden="true"></div>
+
+    <script>
+      const body = document.body;
+      const scene = document.querySelector(".scene");
+
+      const triggerTransition = (hotspot) => {
+        const rect = hotspot.getBoundingClientRect();
+        const originX = rect.left + rect.width / 2;
+        const originY = rect.top + rect.height / 2;
+        scene.style.transformOrigin = `${originX}px ${originY}px`;
+        body.classList.add("is-transitioning");
+      };
+
+      document.querySelectorAll(".hotspot").forEach((hotspot) => {
+        hotspot.addEventListener("click", () => {
+          const target = hotspot.dataset.target;
+          triggerTransition(hotspot);
+
+          if (target) {
+            setTimeout(() => {
+              window.location.href = target;
+            }, 240);
+            return;
+          }
+        });
+      });
+
+      window.addEventListener("load", () => {
+        if (!body.classList.contains("fade-in")) {
+          return;
+        }
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            body.classList.remove("fade-in");
+          });
+        });
+      });
+    </script>
+  </body>
+</html>

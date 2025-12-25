@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Caca ao Tesouro Romantica</title>
+    <style>
+      :root {
+        --accent: #d8838d;
+        --glow: rgba(216, 131, 141, 0.7);
+        --debug-border: rgba(255, 0, 0, 0.85);
+        --debug-fill: rgba(255, 0, 0, 0.2);
+        --fade-color: rgba(0, 0, 0, 0.55);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        overflow: hidden;
+        background: #f6e4de;
+      }
+
+      .scene {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("images/quarto.png");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+        transform: scale(1);
+        transform-origin: center;
+        transition: transform 0.25s ease;
+        will-change: transform;
+        z-index: 1;
+      }
+
+      .fade-layer {
+        position: fixed;
+        inset: 0;
+        background: var(--fade-color);
+        opacity: 0;
+        transition: opacity 0.25s ease;
+        pointer-events: none;
+        z-index: 2;
+      }
+
+      body.is-transitioning .scene {
+        transform: scale(1.2);
+      }
+
+      body.is-transitioning .fade-layer {
+        opacity: 1;
+      }
+
+      .hotspot {
+        position: absolute;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      }
+
+      .hotspot.debug-mode {
+        border: 0;
+        background: transparent;
+      }
+
+      .hotspot:hover {
+        transform: none;
+        box-shadow: none;
+        filter: none;
+      }
+
+      .hotspot.is-zoomed {
+        transform: scale(1.32);
+        box-shadow: none;
+        filter: none;
+      }
+
+      .hotspot:hover::after {
+        opacity: 0;
+      }
+
+      .hotspot:focus-visible {
+        outline: 2px dashed var(--accent);
+        outline-offset: 3px;
+      }
+
+      .hotspot::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 10px;
+        display: none;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(0.98);
+          opacity: 0.4;
+        }
+        50% {
+          transform: scale(1.04);
+          opacity: 0.7;
+        }
+        100% {
+          transform: scale(0.98);
+          opacity: 0.4;
+        }
+      }
+
+      .hotspot--envelope {
+        left: 46%;
+        top: 58%;
+        width: 7.2%;
+        height: 8%;
+      }
+
+      .hotspot--praia {
+        left: 58%;
+        top: 14%;
+        width: 12%;
+        height: 15%;
+      }
+
+      .hotspot--montanhas {
+        left: 27.5%;
+        top: 18%;
+        width: 13%;
+        height: 17%;
+      }
+
+      .hotspot--bolo {
+        left: 71.5%;
+        top: 55.5%;
+        width: 6%;
+        height: 5%;
+        width: 5.5%;
+        height: 6%;
+      }
+
+      .hotspot--gaveta {
+        left: 70.5%;
+        top: 64.5%;
+        width: 4%;
+        height: 6.5%;
+      }
+
+      .back-button {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        width: 36px;
+        height: 36px;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        cursor: pointer;
+        z-index: 5;
+        transition: transform 0.15s ease;
+      }
+
+      .back-button img {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .back-button:hover {
+        transform: scale(1.05);
+      }
+
+    </style>
+  </head>
+  <body>
+    <button
+      class="back-button"
+      type="button"
+      aria-label="Voltar"
+      onclick="history.back()"
+    >
+      <img src="images/volta.png" alt="" />
+    </button>
+
+    <section class="scene" aria-label="Quarto romantico">
+      <button
+        class="hotspot debug-mode hotspot--envelope"
+        type="button"
+        data-label="Envelope"
+        data-target="carta.html"
+        aria-label="Envelope na cama"
+      ></button>
+
+      <a
+        class="hotspot debug-mode hotspot--praia"
+        href="praia.html"
+        data-label="Quadro da Praia"
+        data-target="praia.html"
+        aria-label="Quadro da Praia na parede"
+      ></a>
+
+      <button
+        class="hotspot debug-mode hotspot--montanhas"
+        type="button"
+        data-label="Quadro das Montanhas"
+        data-target="montanhas.html"
+        aria-label="Quadro das Montanhas na parede"
+      ></button>
+
+      <button
+        class="hotspot debug-mode hotspot--bolo"
+        type="button"
+        data-label="Bolo"
+        data-target="bolo.html"
+        aria-label="Bolo no criado-mudo"
+      ></button>
+
+      <button
+        class="hotspot debug-mode hotspot--gaveta"
+        type="button"
+        data-label="Gaveta"
+        data-target="album.html"
+        aria-label="Gaveta do criado-mudo"
+      ></button>
+    </section>
+
+    <div class="fade-layer" aria-hidden="true"></div>
+
+    <script>
+      const scene = document.querySelector(".scene");
+      const body = document.body;
+
+      const triggerTransition = (hotspot) => {
+        const rect = hotspot.getBoundingClientRect();
+        const originX = rect.left + rect.width / 2;
+        const originY = rect.top + rect.height / 2;
+        scene.style.transformOrigin = `${originX}px ${originY}px`;
+        hotspot.classList.add("is-zoomed");
+        body.classList.add("is-transitioning");
+      };
+
+      document.querySelectorAll(".hotspot").forEach((hotspot) => {
+        hotspot.addEventListener("click", (event) => {
+          const target = hotspot.dataset.target || hotspot.getAttribute("href");
+          triggerTransition(hotspot);
+
+          if (target) {
+            if (event) {
+              event.preventDefault();
+            }
+            setTimeout(() => {
+              window.location.href = target;
+            }, 240);
+            return;
+          }
+
+          const label = hotspot.dataset.label || "Objeto";
+          setTimeout(() => {
+            alert(`Voce clicou no ${label}!`);
+            body.classList.remove("is-transitioning");
+            hotspot.classList.remove("is-zoomed");
+          }, 240);
+        });
+      });
+    </script>
+  </body>
+</html>

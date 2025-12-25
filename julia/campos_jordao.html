@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Campos Jordao</title>
+    <style>
+      :root {
+        --fade-color: rgba(0, 0, 0, 0.55);
+      }
+
+      html,
+      body {
+        width: 100%;
+        height: 100%;
+        margin: 0;
+      }
+
+      body {
+        overflow: hidden;
+        background: #f6e4de;
+      }
+
+      .scene {
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("images/quadro_fotos.png");
+        background-size: cover;
+        background-position: center;
+        background-repeat: no-repeat;
+      }
+
+      .photo-slot {
+        position: absolute;
+        overflow: hidden;
+        border-radius: 6px;
+        background: transparent;
+        transform: scale(1.05);
+        transform-origin: center;
+      }
+
+      .photo-slot img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        display: block;
+      }
+
+      .photo-1 {
+        left: 15%;
+        top: 13.1%;
+        width: 14.6%;
+        height: 26.7%;
+      }
+
+      .photo-2 {
+        left: 33.3%;
+        top: 13.1%;
+        width: 14.6%;
+        height: 26.7%;
+      }
+
+      .photo-3 {
+        left: 51.6%;
+        top: 13.1%;
+        width: 14.6%;
+        height: 26.7%;
+      }
+
+      .photo-4 {
+        left: 70.1%;
+        top: 13.1%;
+        width: 14.5%;
+        height: 26.7%;
+      }
+
+      .photo-5 {
+        left: 15%;
+        top: 54.9%;
+        width: 14.6%;
+        height: 26.8%;
+      }
+
+      .photo-6 {
+        left: 33.3%;
+        top: 54.9%;
+        width: 14.6%;
+        height: 26.8%;
+      }
+
+      .photo-7 {
+        left: 51.6%;
+        top: 54.9%;
+        width: 14.6%;
+        height: 26.8%;
+      }
+
+      .photo-8 {
+        left: 70.1%;
+        top: 54.9%;
+        width: 14.5%;
+        height: 26.8%;
+      }
+
+      .fade-layer {
+        position: fixed;
+        inset: 0;
+        background: var(--fade-color);
+        opacity: 0;
+        transition: opacity 0.35s ease;
+        pointer-events: none;
+        z-index: 2;
+      }
+
+      body.fade-in .fade-layer {
+        opacity: 1;
+      }
+
+      .back-button {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        width: 36px;
+        height: 36px;
+        border: 0;
+        padding: 0;
+        background: transparent;
+        cursor: pointer;
+        z-index: 5;
+        transition: transform 0.15s ease;
+      }
+
+      .back-button img {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+
+      .back-button:hover {
+        transform: scale(1.05);
+      }
+    </style>
+  </head>
+  <body class="fade-in">
+    <button
+      class="back-button"
+      type="button"
+      aria-label="Voltar"
+      onclick="history.back()"
+    >
+      <img src="images/volta.png" alt="" />
+    </button>
+
+    <section class="scene" aria-label="Quadro de fotos">
+      <div class="photo-slot photo-1">
+        <img src="quadro_montanhas/1.jpg" alt="Foto 1" />
+      </div>
+      <div class="photo-slot photo-2">
+        <img src="quadro_montanhas/2.jpg" alt="Foto 2" />
+      </div>
+      <div class="photo-slot photo-3">
+        <img src="quadro_montanhas/3.jpg" alt="Foto 3" />
+      </div>
+      <div class="photo-slot photo-4">
+        <img src="quadro_montanhas/4.jpg" alt="Foto 4" />
+      </div>
+      <div class="photo-slot photo-5">
+        <img src="quadro_montanhas/5.jpg" alt="Foto 5" />
+      </div>
+      <div class="photo-slot photo-6">
+        <img src="quadro_montanhas/6.jpg" alt="Foto 6" />
+      </div>
+      <div class="photo-slot photo-7">
+        <img src="quadro_montanhas/7.jpg" alt="Foto 7" />
+      </div>
+      <div class="photo-slot photo-8">
+        <img src="quadro_montanhas/8.jpg" alt="Foto 8" />
+      </div>
+    </section>
+    <div class="fade-layer" aria-hidden="true"></div>
+
+    <script>
+      const body = document.body;
+
+      window.addEventListener("load", () => {
+        if (!body.classList.contains("fade-in")) {
+          return;
+        }
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            body.classList.remove("fade-in");
+          });
+        });
+      });
+    </script>
+  </body>
+</html>
